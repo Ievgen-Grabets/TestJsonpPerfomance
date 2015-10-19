@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Testing performance</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  </head>
+  <body>
+
+  <table class="table table-striped table-bordered">
+
+    <thead>
+    <tr>
+      <th>Test Name</th>
+      <th>URL</th>
+      <th>Start date</th>
+      <th>End Date</th>
+      <th>Load time (milliseconds)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>
+        original
+      </td>
+      <td>
+        <%= server_url %>origin.html
+      </td>
+      <td>
+          <label id="origin_start"></label>
+      </td>
+      <td>
+        <label id="origin_end"></label>
+      </td>
+      <td>
+        <label id="origin_delta"></label>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        with 1 json request
+      </td>
+      <td>
+         <%= server_url %>just_one_jsonp.html
+      </td>
+      <td>
+        <label id="just_one_jsonp_start"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_end"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_delta"></label>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        with the 1 json request + code snippet solution
+      </td>
+      <td>
+         <%= server_url %>just_one_jsonp_with_snippet.html
+      </td>
+      <td>
+        <label id="just_one_jsonp_with_snippet_start"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_with_snippet_end"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_with_snippet_delta"></label>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        only code snippet
+      </td>
+      <td>
+         <%= server_url %>just_one_snippet.html
+      </td>
+      <td>
+        <label id="just_one_snippet_start"></label>
+      </td>
+      <td>
+        <label id="just_one_snippet_end"></label>
+      </td>
+      <td>
+        <label id="just_one_snippet_delta"></label>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  </body>
+
+
+  <script>
+
+    document.domain = "localhost";
+    top.currentStep = undefined;
+    top.tests = ['origin','just_one_jsonp','just_one_jsonp_with_snippet','just_one_snippet'];
+    top.timeStamps = {};
+    tests.forEach(function(test) {
+      timeStamps[test] ={
+        start: undefined,
+        end: undefined,
+        delta: function () {
+          if (!this.start) {
+            return undefined;
+          } else if (!this.end) {
+            return undefined;
+          } else {
+            return this.end - this.start;
+          }
+        }
+      };
+    });
+
+    timeStamps.isAllReceived = function(){
+      for (var i = 0; i < tests.length; i++) {
+        var currentTimeStamp = timeStamps[tests[i]];
+        if(!currentTimeStamp.start || !currentTimeStamp.end){
+          return false;
+        }
+      }
+      return true;
+    };
+
+    timeStamps.clear = function(){
+      timeStamps = timeStamps.map(function(timeStamp) {
+        timeStamp.start = undefined;
+        timeStamp.end = undefined;
+        return timeStamp;
+      });
+    };
+
+    //var testingServerURL = 'http://52.23.184.31:8080/';
+    var testingServerURL = 'http://localhost:8080';
+
+    var testingServerURLFull = testingServerURL + '/';
+
+    var addIframe = function(testName){
+      addValue('start', top.currentStep, formatTime(top.timeStamps[top.currentStep].start));
+      var iframe = document.createElement('iframe');
+      iframe.id = 'iframe-'+testName;
+      iframe.src = testingServerURLFull + testName +'.html';
+      iframe.domain = "localhost";
+      document.body.appendChild(iframe);
+    };
+
+    var removeIframe = function (testName) {
+      addValue('end', top.currentStep, formatTime(top.timeStamps[top.currentStep].end));
+      addValue('delta', top.currentStep, top.timeStamps[top.currentStep].delta());
+      var element = document.getElementById('iframe-'+testName);
+      element.parentNode.removeChild(element);
+    };
+
+    var addValue = function(idName, testName, vale){
+      var element = document.getElementById(testName+'_'+idName);
+      element.textContent = vale;
+    };
+
+    var formatTime = function formatTime(value){
+      return value.toLocaleTimeString().replace("/.*(\d{2}:\d{2}:\d{2}).*/", "$1");
+    };
+
+    var firstRun = true;
+
+    var waitingFunc = function () {
+      if (!firstRun && top.timeStamps.isAllReceived()) {
+        removeIframe(top.currentStep);
+        console.log('***********************************************************');
+        console.log('          DONE           ');
+        console.log('***********************************************************');
+      }
+      else if (firstRun || top.timeStamps[top.currentStep].end) {
+        if(firstRun){
+          top.currentStep = top.tests[0];
+          firstRun = false;
+        }else{
+          removeIframe(top.currentStep);
+          var index = top.tests.indexOf(top.currentStep);
+          top.currentStep = top.tests[++index];
+        }
+        top.timeStamps[top.currentStep].start = new Date();
+        addIframe(top.currentStep);
+        setTimeout(waitingFunc, 1000);
+      } else {
+        console.log('waiting....');
+        setTimeout(waitingFunc, 1000);
+      }
+    };
+
+    var receiveMessage = function (event) {
+      console.log('***********************************************************');
+      console.log('event');
+      console.log('event.origin = ' + event.origin);
+      if(event.origin === testingServerURL && event.data.test && event.data.endTime){
+        console.log('event.data.test = ' + event.data.test);
+        console.log('event.data.endTime = ' + event.data.endTime);
+        top.timeStamps[event.data.test].end = event.data.endTime;
+      }
+      console.log('***********************************************************');
+    };
+
+    top.addEventListener("message", receiveMessage, false);
+
+    waitingFunc();
+
+  </script>
+</html>
