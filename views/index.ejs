@@ -86,6 +86,40 @@
         <label id="just_one_snippet_delta"></label>
       </td>
     </tr>
+    <tr>
+      <td>
+        origin with async
+      </td>
+      <td>
+        <%= server_url %>origin_with_async.html
+      </td>
+      <td>
+        <label id="origin_with_async_start"></label>
+      </td>
+      <td>
+        <label id="origin_with_async_end"></label>
+      </td>
+      <td>
+        <label id="origin_with_async_delta"></label>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        origin with async and one jsonp
+      </td>
+      <td>
+        <%= server_url %>origin_with_async_and_one_jsonp.html
+      </td>
+      <td>
+        <label id="origin_with_async_and_one_jsonp_start"></label>
+      </td>
+      <td>
+        <label id="origin_with_async_and_one_jsonp_end"></label>
+      </td>
+      <td>
+        <label id="origin_with_async_and_one_jsonp_delta"></label>
+      </td>
+    </tr>
     </tbody>
   </table>
 
@@ -95,7 +129,7 @@
   <script>
 
     top.currentStep = undefined;
-    top.tests = ['origin','just_one_jsonp','just_one_jsonp_with_snippet','just_one_snippet'];
+    top.tests = ['origin','just_one_jsonp','just_one_jsonp_with_snippet','just_one_snippet','origin_with_async','origin_with_async_and_one_jsonp'];
     top.timeStamps = {};
     tests.forEach(function(test) {
       timeStamps[test] ={
