@@ -120,12 +120,54 @@
         <label id="origin_with_async_and_one_jsonp_delta"></label>
       </td>
     </tr>
+    <tr>
+      <td>
+        just one jsonp just idea
+      </td>
+      <td>
+        <%= server_url %>just_one_jsonp_just_idea.html
+      </td>
+      <td>
+        <label id="just_one_jsonp_just_idea_start"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_just_idea_end"></label>
+      </td>
+      <td>
+        <label id="just_one_jsonp_just_idea_delta"></label>
+      </td>
+    </tr>
     </tbody>
   </table>
 
+  <table class="table table-striped table-bordered">
+
+    <thead>
+    <tr>
+      <th>Origin</th>
+      <th>Lazy loading</th>
+      <th>Gap</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% for(var i=0; i<number_of_tests_server; i++){ %>
+    <tr>
+      <td>
+        <label id="origin_<%=i%>"></label>
+      </td>
+      <td>
+        <label id="lazy_<%=i%>"></label>
+      </td>
+      <td>
+        <label id="gap_<%=i%>"></label>
+      </td>
+    <tr>
+    <% }%>
+    </tbody>
+  </table>
+
+
   </body>
-
-
   <script>
 
     top.currentStep = undefined;
@@ -158,15 +200,15 @@
     };
 
     timeStamps.clear = function(){
-      timeStamps = timeStamps.map(function(timeStamp) {
+      for(var i=0; i<top.tests.length; i++) {
+        var timeStamp = timeStamps[top.tests[i]];
         timeStamp.start = undefined;
         timeStamp.end = undefined;
-        return timeStamp;
-      });
+      }
     };
 
-    var testingServerURL = 'http://52.23.184.31:8080';
-    //var testingServerURL = 'http://localhost:8080';
+    //var testingServerURL = 'http://52.23.184.31:8080';
+    var testingServerURL = 'http://localhost:8080';
 
     var testingServerURLFull = testingServerURL + '/';
 
@@ -190,11 +232,27 @@
       element.textContent = vale;
     };
 
+    var removeValue = function(idName, testName){
+      var element = document.getElementById(testName+'_'+idName);
+      element.textContent = "";
+    };
+
     var formatTime = function formatTime(value){
       return value.toLocaleTimeString().replace("/.*(\d{2}:\d{2}:\d{2}).*/", "$1");
     };
 
     var firstRun = true;
+
+    var number_of_tests = 200;
+    var current_test = 0;
+
+    var clearValues = function(){
+      for(var i=0; i<top.tests.length; i++){
+        removeValue('end', top.tests[i]);
+        removeValue('delta', top.tests[i]);
+        removeValue('start', top.tests[i]);
+      }
+    };
 
     var waitingFunc = function () {
       if (!firstRun && top.timeStamps.isAllReceived()) {
@@ -204,10 +262,10 @@
         console.log('***********************************************************');
       }
       else if (firstRun || top.timeStamps[top.currentStep].end) {
-        if(firstRun){
+        if (firstRun) {
           top.currentStep = top.tests[0];
           firstRun = false;
-        }else{
+        } else {
           removeIframe(top.currentStep);
           var index = top.tests.indexOf(top.currentStep);
           top.currentStep = top.tests[++index];
@@ -229,6 +287,20 @@
         console.log('event.data.test = ' + event.data.test);
         console.log('event.data.endTime = ' + event.data.endTime);
         top.timeStamps[event.data.test].end = event.data.endTime;
+        if(event.data.test === top.tests[top.tests.length-1]){
+          if(current_test<number_of_tests){
+            setTimeout(function() {
+              firstRun = true;
+              clearValues();
+              setTimeout(waitingFunc, 1000);
+              addValue(current_test, 'origin', timeStamps.origin.delta());
+              addValue(current_test, 'lazy', timeStamps.just_one_jsonp.delta());
+              addValue(current_test, 'gap', timeStamps.origin.delta()-timeStamps.just_one_jsonp.delta());
+              current_test++;
+              timeStamps.clear();
+            },2000);
+          }
+        }
       }
       console.log('***********************************************************');
     };
