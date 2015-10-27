@@ -209,15 +209,21 @@
     };
 
     var testingServerURL = 'http://52.23.184.31:8080';
+    var testingServerOriginURL = 'http://52.23.184.31:9000';
     //var testingServerURL = 'http://localhost:8080';
 
     var testingServerURLFull = testingServerURL + '/';
+    var testingServerOriginURL = testingServerOriginURL + '/';
 
     var addIframe = function(testName){
       addValue('start', top.currentStep, formatTime(top.timeStamps[top.currentStep].start));
       var iframe = document.createElement('iframe');
       iframe.id = 'iframe-'+testName;
-      iframe.src = testingServerURLFull + testName +'.html';
+      if(testName === origin){
+        iframe.src = testingServerOriginURL + testName + '.html';
+      }else {
+        iframe.src = testingServerURLFull + testName + '.html';
+      }
       document.body.appendChild(iframe);
     };
 
@@ -284,7 +290,7 @@
       console.log('***********************************************************');
       console.log('event');
       console.log('event.origin = ' + event.origin);
-      if(event.origin === testingServerURL && event.data.test && event.data.endTime){
+      if((event.origin === testingServerURL || event.origin === testingServerOriginURL) && event.data.test && event.data.endTime){
         console.log('event.data.test = ' + event.data.test);
         console.log('event.data.endTime = ' + event.data.endTime);
         top.timeStamps[event.data.test].end = event.data.endTime;
