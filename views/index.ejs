@@ -219,7 +219,7 @@
       addValue('start', top.currentStep, formatTime(top.timeStamps[top.currentStep].start));
       var iframe = document.createElement('iframe');
       iframe.id = 'iframe-'+testName;
-      if(testName === origin){
+      if(testName === 'origin'){
         iframe.src = testingServerOriginURL + testName + '.html';
       }else {
         iframe.src = testingServerURLFull + testName + '.html';
